@@ -1,0 +1,106 @@
+<html>
+  <head>
+    <script src='https://npmcdn.com/react@15.2.0/dist/react.js'></script>
+    <script src='https://npmcdn.com/react-dom@15.2.0/dist/react-dom.js'></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src='https://npmcdn.com/mobx@2.3.4/lib/mobx.umd.js'></script>
+    <script src='https://npmcdn.com/mobx-react@3.4.0/index.js'></script>
+  </head>
+  <body>
+    <div id='host'></div>
+    <button id="btn" onclick="increase()">单独更改user的每个字段</button>
+    <button id="btn1" onclick="increase1()">更改整个user对象</button>
+    <script type="text/babel">
+      /*
+      注意increase与increaseInReact两个函数，都是单独设置user对象的每个字段，但是效果却
+      截然不同，由React组件触发的方法（increaseInReact）只会触发一次render，由dom元素触
+      发的方法（increase）却会触发5次render。
+      结论（只是猜测）：react组件触发的方法应该是做了什么特殊处理，保证其一次事件循环内产生的
+      render做批量处理，目前只是猜测，有人知道原因还请指教。
+      */
+
+      const { Component } = React;
+      const { observable, autorun } = mobx;
+      const { observer, Provider } = mobxReact;
+
+      const h = React.createElement;
+
+      const store = observable({
+        user: {
+          name: "tom",
+          age: 0,
+          age1: 0,
+          age2: 0,
+          age3: 0
+        }
+      });
+      
+      // 每次调用会执行5次render
+      function increase() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        user.name = user.name + newAge;
+        user.age = newAge;
+        user.age1 = newAge;
+        user.age2 = newAge;
+        user.age3 = newAge;
+      }
+
+      // 每次调用只执行一次render
+      function increase1() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        store.user = {
+          name: user.name + newAge,
+          age: newAge,
+          age1: newAge,
+          age2: newAge,
+          age3: newAge
+        };
+      }
+
+      // 每次调用会执行1次render
+      function increaseInReact() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        user.name = user.name + newAge;
+        user.age = newAge;
+        user.age1 = newAge;
+        user.age2 = newAge;
+        user.age3 = newAge;
+      }
+
+      var TestApp = observer(React.createClass({
+        increaseInReact() {
+          var user = store.user;
+          var newAge = user.age + 1;
+          user.name = user.name + newAge;
+          user.age = newAge;
+          user.age1 = newAge;
+          user.age2 = newAge;
+          user.age3 = newAge;
+        },
+
+        render() {
+          const user = store.user;
+          
+          console.log('render ', user);
+          //trace(true);
+          return (
+            <div>
+              <div>{user.name}</div>
+              <div>{user.age}</div>
+              <div>{user.age1}</div>
+              <div>{user.age2}</div>
+              <div>{user.age3}</div>
+              <button onClick={increaseInReact}>increaseInReact</button>
+              <button onClick={this.increaseInReact}>this.increaseInReact</button>
+            </div>
+          );
+        }
+      }));
+
+      ReactDOM.render(h(TestApp), document.getElementById('host'));
+    </script>
+  </body>
+</html>

@@ -1,0 +1,132 @@
+<html>
+  <head>
+    <script src='https://npmcdn.com/react@15.2.0/dist/react.js'></script>
+    <script src='https://npmcdn.com/react-dom@15.2.0/dist/react-dom.js'></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src='https://npmcdn.com/mobx@2.3.4/lib/mobx.umd.js'></script>
+    <script src='https://npmcdn.com/mobx-react@3.4.0/index.js'></script>
+  </head>
+  <body>
+    <div id='host'></div>
+    <button id="btn" onclick="increase()">单独更改user的每个字段</button>
+    <button id="btn1" onclick="increase1()">更改整个user对象</button>
+    <script type="text/babel">
+      const { Component } = React;
+      const { observable, autorun } = mobx;
+      const { observer, Provider } = mobxReact;
+
+      const h = React.createElement;
+
+      const store = observable({
+        user: {
+          name: "tom",
+          age: 0,
+          age1: 0,
+          age2: 0,
+          age3: 0
+        }
+      });
+      
+      // 每次调用会执行5次render
+      function increase() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        user.name = user.name + newAge;
+        user.age = newAge;
+        user.age1 = newAge;
+        user.age2 = newAge;
+        user.age3 = newAge;
+      }
+
+      // 每次调用只执行一次render
+      function increase1() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        store.user = {
+          name: user.name + newAge,
+          age: newAge,
+          age1: newAge,
+          age2: newAge,
+          age3: newAge
+        };
+      }
+
+      function increaseInReact() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        user.name = user.name + newAge;
+        user.age = newAge;
+        user.age1 = newAge;
+        user.age2 = newAge;
+        user.age3 = newAge;
+      }
+
+      var User = observer(class User extends Component{
+        render() {
+          const { name, age, age1, age2, age3 } = this.props;
+          
+          console.log('render user');
+          //trace(true);
+          return (
+            <div>
+              <div>{name}</div>
+              <div>{age}</div>
+              <div>{age1}</div>
+              <div>{age2}</div>
+              <div>{age3}</div>
+            </div>
+          );
+        }
+      });
+
+      class App extends Component {
+        constructor(props) {
+          super(props);
+
+          this.state = {
+            name: store.user.name,
+            age: store.user.age,
+            age1: store.user.age1,
+            age2: store.user.age2,
+            age3: store.user.age3
+          };
+
+          mobx.autorun(() => {
+            var user = store.user;
+            this.setState({
+              name: user.name,
+              age: user.age,
+              age1: user.age1,
+              age2: user.age2,
+              age3: user.age3
+            });
+          });
+        }
+
+        increaseInReact() {
+          var user = store.user;
+          var newAge = user.age + 1;
+          user.name = user.name + newAge;
+          user.age = newAge;
+          user.age1 = newAge;
+          user.age2 = newAge;
+          user.age3 = newAge;
+        }
+
+        render() {
+          const user = store.user;
+          
+          return (
+            <div>
+              <User {...this.state}></User>
+              <button onClick={increaseInReact}>increaseInReact</button>              
+              <button onClick={this.increaseInReact}>this.increaseInReact</button>              
+            </div>
+          )
+        }
+      };
+
+      ReactDOM.render(h(App), document.getElementById('host'));
+    </script>
+  </body>
+</html>

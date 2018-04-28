@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <script src='https://npmcdn.com/react@15.2.0/dist/react.js'></script>
+    <script src='https://npmcdn.com/react-dom@15.2.0/dist/react-dom.js'></script>
+    <script src='https://npmcdn.com/mobx@2.3.4/lib/mobx.umd.js'></script>
+    <script src='https://npmcdn.com/mobx-react@3.4.0/index.js'></script>
+  </head>
+  <body>
+    <div id='host'></div>
+    <button onclick="increase()">单独更改user的每个字段</button>
+    <button onclick="increase1()">更改整个user对象</button>
+    <script>
+      const { observable, autorun } = mobx;
+
+      const store = observable({
+        user: {
+          name: "tom",
+          age: 0,
+          age1: 0,
+          age2: 0,
+          age3: 0
+        }
+      });
+      
+      // 每次调用会执行5次autorun
+      function increase() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        user.name = user.name + newAge;
+        user.age = newAge;
+        user.age1 = newAge;
+        user.age2 = newAge;
+        user.age3 = newAge;
+      }
+
+      // 每次调用只执行一次autorun
+      function increase1() {
+        var user = store.user;
+        var newAge = user.age + 1;
+        store.user = {
+          name: user.name + newAge,
+          age: newAge,
+          age1: newAge,
+          age2: newAge,
+          age3: newAge
+        };
+      }
+
+      autorun(() => {
+        var user = store.user;
+        console.log('name: ', user.name);
+        console.log('age: ', user.age);
+        console.log('age1: ', user.age1);
+        console.log('age2: ', user.age2);
+        console.log('age3: ', user.age3);
+      });
+    </script>
+  </body>
+</html>
